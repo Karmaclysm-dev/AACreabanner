@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Event Banner Creator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@600;700&family=Exo+2:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #5865F2;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="file"] {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus {
+            outline: none;
+            border-color: #5865F2;
+        }
+
+        input[type="file"] {
+            cursor: pointer;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            background: repeating-conic-gradient(#eee 0% 25%, white 0% 50%) 50% / 20px 20px;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        #previewCanvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: move;
+        }
+
+        .image-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #5865F2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #4752C4;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-size: 16px;
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 auto;
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #5865F2;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Creazione Banner Eventi</h1>
+        <p class="subtitle">Crea banner per gli eventi su Discord (1600x800px)</p>
+
+        <div class="info-box">
+            💡 <strong>Suggerimento:</strong> Carica un'immagine e trascinala per posizionarla. Usa i pulsanti per zoomare e ruotare.
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="imageUpload">📷 Carica Immagine *</label>
+                <input type="file" id="imageUpload" accept="image/*" required>
+            </div>
+            
+            <div class="control-group">
+                <label for="eventDate">📅 Data Evento (opzionale)</label>
+                <input type="date" id="eventDate">
+            </div>
+            
+            <div class="control-group">
+                <label for="eventTitle">✨ Titolo Evento *</label>
+                <input type="text" id="eventTitle" placeholder="Es: Torneo Gaming Estivo" maxlength="50">
+            </div>
+            
+            <div class="control-group">
+                <label for="eventSubtitle">📝 Sottotitolo (opzionale)</label>
+                <input type="text" id="eventSubtitle" placeholder="Es: Partecipa e vinci premi esclusivi" maxlength="60">
+            </div>
+        </div>
+
+        <div class="image-controls">
+            <button onclick="zoomIn()">🔍 Zoom In</button>
+            <button onclick="zoomOut()">🔍 Zoom Out</button>
+            <button onclick="rotateLeft()">↶ Ruota Sx</button>
+            <button onclick="rotateRight()">↷ Ruota Dx</button>
+            <button onclick="resetImage()">🔄 Reset</button>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="previewCanvas" width="1600" height="800"></canvas>
+        </div>
+
+        <button class="download-btn" onclick="downloadBanner()">
+            <span>⬇️</span>
+            <span>Scarica Banner</span>
+        </button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('previewCanvas');
+        const ctx = canvas.getContext('2d');
+        const imageUpload = document.getElementById('imageUpload');
+        const eventTitle = document.getElementById('eventTitle');
+        const eventSubtitle = document.getElementById('eventSubtitle');
+        const eventDate = document.getElementById('eventDate');
+
+        let uploadedImage = null;
+        let serverIcon = null;
+
+        eventTitle.addEventListener('input', drawBanner);
+        eventSubtitle.addEventListener('input', drawBanner);
+        eventDate.addEventListener('change', drawBanner);
+
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('mousemove', drag);
+        canvas.addEventListener('mouseup', stopDrag);
+        canvas.addEventListener('mouseleave', stopDrag);
+
+        canvas.addEventListener('touchstart', handleTouch);
+        canvas.addEventListener('touchmove', handleTouch);
+        canvas.addEventListener('touchend', stopDrag);
+
+        function startDrag(e) {
+            if (!uploadedImage) return;
+            isDragging = true;
+            const rect = canvas.getBoundingClientRect();
+            dragStartX = (e.clientX - rect.left) * (canvas.width / rect.width) - imageX;
+            dragStartY = (e.clientY - rect.top) * (canvas.height / rect.height) - imageY;
+        }
+
+        function drag(e) {
+            if (!isDragging || !uploadedImage) return;
+            const rect = canvas.getBoundingClientRect();
+            imageX = (e.clientX - rect.left) * (canvas.width / rect.width) - dragStartX;
+            imageY = (e.clientY - rect.top) * (canvas.height / rect.height) - dragStartY;
+            drawBanner();
+        }
+
+        function stopDrag() {
+            isDragging = false;
+        }
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            if (!touch) return;
+            
+            if (e.type === 'touchstart') {
+                if (!uploadedImage) return;
+                isDragging = true;
+                const rect = canvas.getBoundingClientRect();
+                dragStartX = (touch.clientX - rect.left) * (canvas.width / rect.width) - imageX;
+                dragStartY = (touch.clientY - rect.top) * (canvas.height / rect.height) - imageY;
+            } else if (e.type === 'touchmove') {
+                if (!isDragging || !uploadedImage) return;
+                const rect = canvas.getBoundingClientRect();
+                imageX = (touch.clientX - rect.left) * (canvas.width / rect.width) - dragStartX;
+                imageY = (touch.clientY - rect.top) * (canvas.height / rect.height) - dragStartY;
+                drawBanner();
+            }
+        }
+
+        function zoomIn() {
+            imageScale *= 1.1;
+            drawBanner();
+        }
+
+        function zoomOut() {
+            imageScale *= 0.9;
+            drawBanner();
+        }
+
+        function rotateLeft() {
+            imageRotation -= 15;
+            drawBanner();
+        }
+
+        function rotateRight() {
+            imageRotation += 15;
+            drawBanner();
+        }
+
+        function resetImage() {
+            if (!uploadedImage) return;
+            
+            const bannerPadding = 40;
+            const bannerWidth = canvas.width - (bannerPadding * 2);
+            const bannerHeight = canvas.height - (bannerPadding * 12);
+            
+            const scaleX = bannerWidth / uploadedImage.width;
+            const scaleY = bannerHeight / uploadedImage.height;
+            imageScale = Math.max(scaleX, scaleY);
+            
+            imageX = canvas.width / 2;
+            imageY = canvas.height / 2;
+            imageRotation = 0;
+            
+            drawBanner();
+        }
+
+        function drawBanner() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const bannerPadding = 40;
+            const cornerRadius = 45;
+            const borderWidth = 8;
+            
+            const bannerX = bannerPadding;
+            const bannerY = bannerPadding * 6;
+            const bannerWidth = canvas.width - (bannerPadding * 2);
+            const bannerHeight = canvas.height - (bannerPadding * 12);
+
+            ctx.save();
+            
+            ctx.beginPath();
+            ctx.moveTo(bannerX + cornerRadius, bannerY);
+            ctx.lineTo(bannerX + bannerWidth - cornerRadius, bannerY);
+            ctx.arcTo(bannerX + bannerWidth, bannerY, bannerX + bannerWidth, bannerY + cornerRadius, cornerRadius);
+            ctx.lineTo(bannerX + bannerWidth, bannerY + bannerHeight - cornerRadius);
+            ctx.arcTo(bannerX + bannerWidth, bannerY + bannerHeight, bannerX + bannerWidth - cornerRadius, bannerY + bannerHeight, cornerRadius);
+            ctx.lineTo(bannerX + cornerRadius, bannerY + bannerHeight);
+            ctx.arcTo(bannerX, bannerY + bannerHeight, bannerX, bannerY + bannerHeight - cornerRadius, cornerRadius);
+            ctx.lineTo(bannerX, bannerY + cornerRadius);
+            ctx.arcTo(bannerX, bannerY, bannerX + cornerRadius, bannerY, cornerRadius);
+            ctx.closePath();
+            ctx.clip();
+
+            if (uploadedImage) {
+                ctx.save();
+                ctx.translate(imageX, imageY);
+                ctx.rotate(imageRotation * Math.PI / 180);
+                ctx.scale(imageScale, imageScale);
+                ctx.drawImage(uploadedImage, -uploadedImage.width / 2, -uploadedImage.height / 2);
+                ctx.restore();
+            } else {
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(bannerX, bannerY, bannerWidth, bannerHeight);
+                ctx.fillStyle = '#999';
+                ctx.font = '32px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Carica un\'immagine per iniziare', canvas.width / 2, canvas.height / 2);
+            }
+
+            ctx.restore();
+
+            const gradient = ctx.createLinearGradient(bannerX, bannerY, bannerX + bannerWidth, bannerY + bannerHeight);
+            gradient.addColorStop(0, '#2F2F2F');
+            gradient.addColorStop(0.5, '#383838');
+            gradient.addColorStop(1, '#1C1C1C');
+
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = borderWidth;
+            ctx.beginPath();
+            ctx.moveTo(bannerX + cornerRadius, bannerY);
+            ctx.lineTo(bannerX + bannerWidth - cornerRadius, bannerY);
+            ctx.arcTo(bannerX + bannerWidth, bannerY, bannerX + bannerWidth, bannerY + cornerRadius, cornerRadius);
+            ctx.lineTo(bannerX + bannerWidth, bannerY + bannerHeight - cornerRadius);
+            ctx.arcTo(bannerX + bannerWidth, bannerY + bannerHeight, bannerX + bannerWidth - cornerRadius, bannerY + bannerHeight, cornerRadius);
+            ctx.lineTo(bannerX + cornerRadius, bannerY + bannerHeight);
+            ctx.arcTo(bannerX, bannerY + bannerHeight, bannerX, bannerY + bannerHeight - cornerRadius, cornerRadius);
+            ctx.lineTo(bannerX, bannerY + cornerRadius);
+            ctx.arcTo(bannerX, bannerY, bannerX + cornerRadius, bannerY, cornerRadius);
+            ctx.closePath();
+            ctx.stroke();
+
+            if (eventDate.value) {
+                const dateObj = new Date(eventDate.value + 'T00:00:00');
+                const day = dateObj.getDate();
+                const month = dateObj.toLocaleDateString('it-IT', { month: 'short' }).toUpperCase();
+                
+                const calSize = 130;
+                const calX = bannerX + 35;
+                const calY = bannerY + 35;
+                const headerHeight = 32;
+
+                ctx.save();
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 5;
+
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.roundRect(calX, calY, calSize, calSize, 10);
+                ctx.fill();
+
+                ctx.shadowColor = 'transparent';
+
+                ctx.fillStyle = '#585858';
+                ctx.beginPath();
+                ctx.roundRect(calX, calY, calSize, headerHeight, [10, 10, 0, 0]);
+                ctx.fill();
+
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 22px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(month, calX + calSize / 2, calY + headerHeight / 2);
+
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 90px Arial';
+                ctx.textBaseline = 'middle';
+                const whiteAreaHeight = calSize - headerHeight;
+                const whiteAreaCenter = calY + headerHeight + (whiteAreaHeight / 2);
+                ctx.fillText(day, calX + calSize / 2, whiteAreaCenter);
+
+                ctx.restore();
+            }
+
+			const title = eventTitle.value || 'Titolo Evento';
+			const subtitle = eventSubtitle.value;
+
+				ctx.save();
+				ctx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+				ctx.shadowBlur = 25;
+				ctx.shadowOffsetX = 0;
+				ctx.shadowOffsetY = 5;
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'middle';
+
+				// Titolo
+				ctx.font = 'bold 110px Orbitron, Arial, sans-serif';
+				ctx.lineWidth = 3;
+				ctx.strokeStyle = '#000';
+
+			if (subtitle) {
+				// Con sottotitolo: titolo più in alto
+				ctx.strokeText(title, canvas.width / 2, canvas.height / 2 - 60);
+				ctx.fillStyle = 'white';
+				ctx.fillText(title, canvas.width / 2, canvas.height / 2 - 60);
+    
+				// Sottotitolo
+				ctx.font = 'bold 60px Orbitron, Arial, sans-serif';
+				ctx.lineWidth = 3;
+				ctx.strokeText(subtitle, canvas.width / 2, canvas.height / 2 + 60);
+				ctx.fillStyle = 'white';
+				ctx.fillText(subtitle, canvas.width / 2, canvas.height / 2 + 60);
+							} else {
+				// Senza sottotitolo: titolo perfettamente centrato
+				ctx.strokeText(title, canvas.width / 2, canvas.height / 2);
+				ctx.fillStyle = 'white';
+				ctx.fillText(title, canvas.width / 2, canvas.height / 2);
+									}
+
+				ctx.restore();
+			}
+
+        function downloadBanner() {
+            if (!uploadedImage) {
+                alert('Per favore carica un\'immagine prima di scaricare il banner!');
+                return;
+            }
+            
+            if (!eventTitle.value.trim()) {
+                alert('Per favore inserisci un titolo per l\'evento!');
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.download = 'discord-event-banner.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        drawBanner();
+    </script>
+</body>
+</html>
